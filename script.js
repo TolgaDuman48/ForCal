@@ -1,14 +1,10 @@
-const supabaseUrl =
-  "https://cmdbhaepecnwpohrhrpm.supabase.co";
+const supabaseUrl = "https://cmdbhaepecnwpohrhrpm.supabase.co";
+const supabaseKey = "sb_publishable_sa-LoFmpE84BZL3gYnxJFg_8Vwje970";
 
-const supabaseKey =
-  "sb_publishable_sa-LoFmpE84BZL3gYnxJFg_8Vwje970";
-
-const supabaseClient =
-  window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
+const supabaseClient = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
 
 const hotels = [
   { id: "pera", name: "The Marmara Pera", rooms: 205 },
@@ -34,7 +30,13 @@ const data = {
     romAdr: 114.24,
     oooRn: 62,
     targetOcc: 85,
-    targetAdr: 115
+    targetAdr: 115,
+    morningRn: 0,
+    morningAdr: 0,
+    morningRev: 0,
+    currentRn: 0,
+    currentAdr: 0,
+    currentRev: 0
   },
   camlica: {
     selectedMonth: currentMonth,
@@ -44,7 +46,13 @@ const data = {
     romAdr: 116,
     oooRn: 0,
     targetOcc: 90,
-    targetAdr: 120
+    targetAdr: 120,
+    morningRn: 0,
+    morningAdr: 0,
+    morningRev: 0,
+    currentRn: 0,
+    currentAdr: 0,
+    currentRev: 0
   },
   suadiye: {
     selectedMonth: currentMonth,
@@ -54,7 +62,13 @@ const data = {
     romAdr: 145.42,
     oooRn: 0,
     targetOcc: 84,
-    targetAdr: 138
+    targetAdr: 138,
+    morningRn: 0,
+    morningAdr: 0,
+    morningRev: 0,
+    currentRn: 0,
+    currentAdr: 0,
+    currentRev: 0
   }
 };
 
@@ -111,11 +125,8 @@ function calc(hotel) {
   const grossInventory = hotel.rooms * mdays;
   const netInventory = grossInventory - monthlyOoo;
 
-  const grossMtdCap = hotel.rooms * mtd;
-  const grossRomCap = hotel.rooms * remaining;
-
-  const mtdCap = grossMtdCap - mtdOoo;
-  const romCap = grossRomCap - romOoo;
+  const mtdCap = hotel.rooms * mtd - mtdOoo;
+  const romCap = hotel.rooms * remaining - romOoo;
 
   const mtdSold = mtdCap * Number(d.mtdOcc) / 100;
   const mtdRev = mtdSold * Number(d.mtdAdr);
@@ -165,6 +176,15 @@ function calc(hotel) {
     pickupPerDay = 0;
   }
 
+  const snapshotPickupRn =
+    Number(d.currentRn || 0) - Number(d.morningRn || 0);
+
+  const snapshotPickupRev =
+    Number(d.currentRev || 0) - Number(d.morningRev || 0);
+
+  const snapshotPickupAdr =
+    snapshotPickupRn > 0 ? snapshotPickupRev / snapshotPickupRn : 0;
+
   return {
     selectedMonth,
     mdays,
@@ -194,6 +214,9 @@ function calc(hotel) {
     pickupRev,
     pickupAdr,
     pickupPerDay,
+    snapshotPickupRn,
+    snapshotPickupRev,
+    snapshotPickupAdr,
     achieved,
     impossible
   };
@@ -257,6 +280,14 @@ function render() {
         ${input("Monthly OOO RN", "oooRn", d.oooRn)}
         ${input("Target OCC %", "targetOcc", d.targetOcc)}
         ${input("Target ADR", "targetAdr", d.targetAdr)}
+
+        ${input("Morning RN", "morningRn", d.morningRn)}
+        ${input("Morning ADR", "morningAdr", d.morningAdr)}
+        ${input("Morning REV", "morningRev", d.morningRev)}
+
+        ${input("Current RN", "currentRn", d.currentRn)}
+        ${input("Current ADR", "currentAdr", d.currentAdr)}
+        ${input("Current REV", "currentRev", d.currentRev)}
       </div>
 
       <div class="result-grid">
@@ -279,6 +310,10 @@ function render() {
         ${result("Pickup / Day", c.achieved ? "0" : c.impossible ? "-" : c.pickupPerDay.toFixed(1))}
         ${result("Pickup Revenue Needed", c.achieved ? "0" : c.impossible ? "-" : money(c.pickupRev))}
 
+        ${result("Snapshot Pickup RN", num(c.snapshotPickupRn))}
+        ${result("Snapshot Pickup ADR", money(c.snapshotPickupAdr))}
+        ${result("Snapshot Pickup REV", money(c.snapshotPickupRev))}
+
         ${result("Gross Inventory", num(c.grossInventory))}
         ${result("Monthly OOO RN", num(c.monthlyOoo))}
         ${result("Net Inventory", num(c.netInventory))}
@@ -287,9 +322,10 @@ function render() {
         ${result("Estimated ADR", money(d.targetAdr))}
         ${result("Estimated Revenue", money(c.targetRev))}
       </div>
-      <div class="footer-credit">
-  Copyright Tolga Duman<span class="tm">c</span> 2026
-</div>
+    </div>
+
+    <div class="footer-credit">
+      Copyright Tolga Duma<span class="tm">c</span> 2026
     </div>
   `;
 }
@@ -387,6 +423,12 @@ async function saveToCloud() {
     ooo_rn: Number(d.oooRn),
     target_occ: Number(d.targetOcc),
     target_adr: Number(d.targetAdr),
+    morning_rn: Number(d.morningRn),
+    morning_adr: Number(d.morningAdr),
+    morning_rev: Number(d.morningRev),
+    current_rn: Number(d.currentRn),
+    current_adr: Number(d.currentAdr),
+    current_rev: Number(d.currentRev),
     updated_at: new Date().toISOString()
   };
 
@@ -424,6 +466,12 @@ async function loadFromCloud() {
     d.oooRn = Number(cloudData.ooo_rn);
     d.targetOcc = Number(cloudData.target_occ);
     d.targetAdr = Number(cloudData.target_adr);
+    d.morningRn = Number(cloudData.morning_rn || 0);
+    d.morningAdr = Number(cloudData.morning_adr || 0);
+    d.morningRev = Number(cloudData.morning_rev || 0);
+    d.currentRn = Number(cloudData.current_rn || 0);
+    d.currentAdr = Number(cloudData.current_adr || 0);
+    d.currentRev = Number(cloudData.current_rev || 0);
   }
 
   render();
