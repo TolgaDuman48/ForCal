@@ -1,10 +1,7 @@
 const supabaseUrl = "https://cmdbhaepecnwpohrhrpm.supabase.co";
 const supabaseKey = "sb_publishable_sa-LoFmpE84BZL3gYnxJFg_8Vwje970";
 
-const supabaseClient = window.supabase.createClient(
-  supabaseUrl,
-  supabaseKey
-);
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 const hotels = [
   { id: "pera", name: "The Marmara Pera", rooms: 205 },
@@ -20,6 +17,9 @@ const monthNames = [
 const currentDate = new Date();
 const currentMonth = currentDate.getMonth();
 const currentYear = currentDate.getFullYear();
+
+let selectedId = "pera";
+let viewMode = "forecast";
 
 const data = {
   pera: {
@@ -72,7 +72,6 @@ const data = {
   }
 };
 
-let selectedId = "pera";
 const app = document.getElementById("app");
 
 function getMonthDays(monthIndex) {
@@ -185,38 +184,58 @@ function calc(hotel) {
   const snapshotPickupAdr =
     snapshotPickupRn > 0 ? snapshotPickupRev / snapshotPickupRn : 0;
 
+  const snapshotRnGrowth =
+    Number(d.morningRn || 0) > 0
+      ? snapshotPickupRn / Number(d.morningRn) * 100
+      : 0;
+
+  const snapshotRevGrowth =
+    Number(d.morningRev || 0) > 0
+      ? snapshotPickupRev / Number(d.morningRev) * 100
+      : 0;
+
   return {
     selectedMonth,
     mdays,
     mtd,
     remaining,
+
     monthlyOoo,
     grossInventory,
     netInventory,
     mtdCap,
     romCap,
+
     mtdSold,
     mtdRev,
     romOtbRn,
     romOtbRev,
     sellableRn,
+
     targetRn,
     targetRev,
+
     requiredRomRn,
     requiredRomRev,
     requiredRomAdr,
     requiredRomOcc,
+
     currentForecastRn,
     currentForecastRev,
     currentForecastOcc,
     currentForecastAdr,
+
     pickupRn,
     pickupRev,
     pickupAdr,
     pickupPerDay,
+
     snapshotPickupRn,
     snapshotPickupRev,
     snapshotPickupAdr,
+    snapshotRnGrowth,
+    snapshotRevGrowth,
+
     achieved,
     impossible
   };
@@ -272,7 +291,9 @@ function render() {
       </div>
 
       <div class="input-grid">
+        ${viewSelect()}
         ${monthSelect(d.selectedMonth)}
+
         ${input("MTD OCC %", "mtdOcc", d.mtdOcc)}
         ${input("MTD ADR", "mtdAdr", d.mtdAdr)}
         ${input("ROM OCC %", "romOcc", d.romOcc)}
@@ -291,41 +312,91 @@ function render() {
       </div>
 
       <div class="result-grid">
-        ${statusCard(c)}
-
-        ${result("OTB OCC", pct(c.currentForecastOcc))}
-        ${result("OTB ADR", money(c.currentForecastAdr))}
-        ${result("OTB Revenue", money(c.currentForecastRev))}
-
-        ${result("Required ROM RN", num(c.requiredRomRn))}
-        ${result("Required ROM ADR", money(c.requiredRomAdr))}
-        ${result("Required ROM OCC", pct(c.requiredRomOcc))}
-
-        ${result("ROM RN", num(c.romOtbRn))}
-        ${result("ROM Revenue", money(c.romOtbRev))}
-        ${result("Sellable Remaining RN", num(c.sellableRn))}
-
-        ${result("Pickup Needed RN", c.achieved ? "0" : c.impossible ? "-" : num(c.pickupRn))}
-        ${result("Pickup ADR Needed", c.achieved ? "0" : c.impossible ? "-" : money(c.pickupAdr))}
-        ${result("Pickup / Day", c.achieved ? "0" : c.impossible ? "-" : c.pickupPerDay.toFixed(1))}
-        ${result("Pickup Revenue Needed", c.achieved ? "0" : c.impossible ? "-" : money(c.pickupRev))}
-
-        ${result("Snapshot Pickup RN", num(c.snapshotPickupRn))}
-        ${result("Snapshot Pickup ADR", money(c.snapshotPickupAdr))}
-        ${result("Snapshot Pickup REV", money(c.snapshotPickupRev))}
-
-        ${result("Gross Inventory", num(c.grossInventory))}
-        ${result("Monthly OOO RN", num(c.monthlyOoo))}
-        ${result("Net Inventory", num(c.netInventory))}
-
-        ${result("Estimated RN", num(c.targetRn))}
-        ${result("Estimated ADR", money(d.targetAdr))}
-        ${result("Estimated Revenue", money(c.targetRev))}
+        ${viewMode === "forecast"
+          ? forecastResults(c, d)
+          : snapshotResults(c, d)}
       </div>
     </div>
 
     <div class="footer-credit">
       Copyright Tolga Duma<span class="tm">c</span> 2026
+    </div>
+  `;
+}
+
+function forecastResults(c, d) {
+  return `
+    ${statusCard(c)}
+
+    ${result("OTB OCC", pct(c.currentForecastOcc))}
+    ${result("OTB ADR", money(c.currentForecastAdr))}
+    ${result("OTB Revenue", money(c.currentForecastRev))}
+
+    ${result("Required ROM RN", num(c.requiredRomRn))}
+    ${result("Required ROM ADR", money(c.requiredRomAdr))}
+    ${result("Required ROM OCC", pct(c.requiredRomOcc))}
+
+    ${result("ROM RN", num(c.romOtbRn))}
+    ${result("ROM Revenue", money(c.romOtbRev))}
+    ${result("Sellable Remaining RN", num(c.sellableRn))}
+
+    ${result("Pickup Needed RN", c.achieved ? "0" : c.impossible ? "-" : num(c.pickupRn))}
+    ${result("Pickup ADR Needed", c.achieved ? "0" : c.impossible ? "-" : money(c.pickupAdr))}
+    ${result("Pickup / Day", c.achieved ? "0" : c.impossible ? "-" : c.pickupPerDay.toFixed(1))}
+    ${result("Pickup Revenue Needed", c.achieved ? "0" : c.impossible ? "-" : money(c.pickupRev))}
+
+    ${result("Gross Inventory", num(c.grossInventory))}
+    ${result("Monthly OOO RN", num(c.monthlyOoo))}
+    ${result("Net Inventory", num(c.netInventory))}
+
+    ${result("Estimated RN", num(c.targetRn))}
+    ${result("Estimated ADR", money(d.targetAdr))}
+    ${result("Estimated Revenue", money(c.targetRev))}
+  `;
+}
+
+function snapshotResults(c, d) {
+  return `
+    ${result("Morning RN", num(d.morningRn))}
+    ${result("Morning ADR", money(d.morningAdr))}
+    ${result("Morning REV", money(d.morningRev))}
+
+    ${result("Current RN", num(d.currentRn))}
+    ${result("Current ADR", money(d.currentAdr))}
+    ${result("Current REV", money(d.currentRev))}
+
+    ${result("Snapshot Pickup RN", num(c.snapshotPickupRn))}
+    ${result("Snapshot Pickup ADR", money(c.snapshotPickupAdr))}
+    ${result("Snapshot Pickup REV", money(c.snapshotPickupRev))}
+
+    ${result("RN Growth", pct(c.snapshotRnGrowth))}
+    ${result("Revenue Growth", pct(c.snapshotRevGrowth))}
+  `;
+}
+
+function viewSelect() {
+  return `
+    <div>
+      <div class="kpi-label">View</div>
+      <select
+        onchange="changeViewMode(this.value)"
+        style="
+          width:100%;
+          background:#111827;
+          color:white;
+          border:none;
+          border-radius:10px;
+          padding:12px;
+          font-size:16px;
+        "
+      >
+        <option value="forecast" ${viewMode === "forecast" ? "selected" : ""}>
+          Forecast Calculator
+        </option>
+        <option value="snapshot" ${viewMode === "snapshot" ? "selected" : ""}>
+          Snapshot Pick Up
+        </option>
+      </select>
     </div>
   `;
 }
@@ -408,6 +479,11 @@ function statusCard(c) {
       <div class="kpi-value">On Track</div>
     </div>
   `;
+}
+
+function changeViewMode(value) {
+  viewMode = value;
+  render();
 }
 
 async function saveToCloud() {
