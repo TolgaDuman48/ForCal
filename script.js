@@ -294,21 +294,7 @@ function render() {
         ${viewSelect()}
         ${monthSelect(d.selectedMonth)}
 
-        ${input("MTD OCC %", "mtdOcc", d.mtdOcc)}
-        ${input("MTD ADR", "mtdAdr", d.mtdAdr)}
-        ${input("ROM OCC %", "romOcc", d.romOcc)}
-        ${input("ROM ADR", "romAdr", d.romAdr)}
-        ${input("Monthly OOO RN", "oooRn", d.oooRn)}
-        ${input("Target OCC %", "targetOcc", d.targetOcc)}
-        ${input("Target ADR", "targetAdr", d.targetAdr)}
-
-        ${input("Morning RN", "morningRn", d.morningRn)}
-        ${input("Morning ADR", "morningAdr", d.morningAdr)}
-        ${input("Morning REV", "morningRev", d.morningRev)}
-
-        ${input("Current RN", "currentRn", d.currentRn)}
-        ${input("Current ADR", "currentAdr", d.currentAdr)}
-        ${input("Current REV", "currentRev", d.currentRev)}
+        ${viewMode === "forecast" ? forecastInputs(d) : snapshotInputs(d)}
       </div>
 
       <div class="result-grid">
@@ -321,6 +307,30 @@ function render() {
     <div class="footer-credit">
       Copyright Tolga Duma<span class="tm">c</span> 2026
     </div>
+  `;
+}
+
+function forecastInputs(d) {
+  return `
+    ${input("MTD OCC %", "mtdOcc", d.mtdOcc)}
+    ${input("MTD ADR", "mtdAdr", d.mtdAdr)}
+    ${input("ROM OCC %", "romOcc", d.romOcc)}
+    ${input("ROM ADR", "romAdr", d.romAdr)}
+    ${input("Monthly OOO RN", "oooRn", d.oooRn)}
+    ${input("Target OCC %", "targetOcc", d.targetOcc)}
+    ${input("Target ADR", "targetAdr", d.targetAdr)}
+  `;
+}
+
+function snapshotInputs(d) {
+  return `
+    ${input("Morning RN", "morningRn", d.morningRn)}
+    ${input("Morning ADR", "morningAdr", d.morningAdr)}
+    ${input("Morning REV", "morningRev", d.morningRev)}
+
+    ${input("Current RN", "currentRn", d.currentRn)}
+    ${input("Current ADR", "currentAdr", d.currentAdr)}
+    ${input("Current REV", "currentRev", d.currentRev)}
   `;
 }
 
@@ -357,6 +367,8 @@ function forecastResults(c, d) {
 
 function snapshotResults(c, d) {
   return `
+    ${result("Month", monthNames[c.selectedMonth])}
+
     ${result("Morning RN", num(d.morningRn))}
     ${result("Morning ADR", money(d.morningAdr))}
     ${result("Morning REV", money(d.morningRev))}
