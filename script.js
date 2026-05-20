@@ -367,7 +367,10 @@ function forecastResults(c, d) {
 
 function snapshotResults(c, d) {
   return `
-    ${result("Month", monthNames[c.selectedMonth])}
+    ${result(
+  "Pickup / Day",
+  c.achieved ? "0" : c.impossible ? "-" : c.pickupPerDay.toFixed(1)
+)}
 
     ${result("Morning RN", num(d.morningRn))}
     ${result("Morning ADR", money(d.morningAdr))}
