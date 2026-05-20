@@ -305,7 +305,7 @@ function render() {
     </div>
 
     <div class="footer-credit">
-      Copyright Tolga Duma<span class="tm">c</span> 2026
+      Copyright Tolga Duman<span class="tm">c</span> 2026
     </div>
   `;
 }
