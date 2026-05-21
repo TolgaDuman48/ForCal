@@ -533,14 +533,9 @@ async function saveToCloud() {
     .select();
 
   if (error) {
-    alert("Save error: " + error.message);
-    console.error("Save error:", error);
+        console.error("Save error:", error);
     return;
   }
-
-  alert("Saved OK");
-  console.log("Saved data:", savedData);
-}
 
 async function loadFromCloud() {
   const d = data[selectedId];
