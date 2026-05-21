@@ -282,31 +282,38 @@ function render() {
     <div class="card">
       <div class="hotel-name">${selectedHotel.name}</div>
 
-      <div class="subtitle">
-        ${selectedHotel.rooms} oda •
-        ${monthNames[c.selectedMonth]} •
-        ${c.mdays} gün •
-        MTD 1-${c.mtd} •
-        Kalan ${c.remaining} gün
-      </div>
+      <div
+  class="subtitle"
+  style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    width:100%;
+  "
+>
+  <div>
+    ${selectedHotel.rooms} oda •
+    ${monthNames[c.selectedMonth]} •
+    ${c.mdays} gün •
+    MTD 1-${c.mtd} •
+    Kalan ${c.remaining} gün
+  </div>
 
-      <div class="input-grid">
-        ${viewSelect()}
-        ${monthSelect(d.selectedMonth)}
-
-        ${viewMode === "forecast" ? forecastInputs(d) : snapshotInputs(d)}
-      </div>
-
-      <div class="result-grid">
-        ${viewMode === "forecast"
-          ? forecastResults(c, d)
-          : snapshotResults(c, d)}
-          ${result(
-  "Last Updated",
-  d.updatedAt
-    ? new Date(d.updatedAt).toLocaleString("tr-TR")
-    : "-"
-)}
+  ${
+    viewMode === "snapshot"
+      ? `
+        <div style="font-size:13px; opacity:.8;">
+          Last Updated:
+          ${
+            d.updatedAt
+              ? new Date(d.updatedAt).toLocaleString("tr-TR")
+              : "-"
+          }
+        </div>
+      `
+      : ""
+  }
+</div>
       </div>
     </div>
 
