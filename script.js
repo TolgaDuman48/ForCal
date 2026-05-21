@@ -523,15 +523,23 @@ async function saveToCloud() {
     updated_at: new Date().toISOString()
   };
 
-  const { error } = await supabaseClient
+  console.log("Saving payload:", payload);
+
+  const { data: savedData, error } = await supabaseClient
     .from("forecast_inputs")
     .upsert(payload, {
       onConflict: "hotel_id,month_index"
-    });
+    })
+    .select();
 
   if (error) {
+    alert("Save error: " + error.message);
     console.error("Save error:", error);
+    return;
   }
+
+  alert("Saved OK");
+  console.log("Saved data:", savedData);
 }
 
 async function loadFromCloud() {
