@@ -301,6 +301,12 @@ function render() {
         ${viewMode === "forecast"
           ? forecastResults(c, d)
           : snapshotResults(c, d)}
+          ${result(
+  "Last Updated",
+  d.updatedAt
+    ? new Date(d.updatedAt).toLocaleString("tr-TR")
+    : "-"
+)}
       </div>
     </div>
 
@@ -567,6 +573,7 @@ async function loadFromCloud() {
     d.currentRn = Number(cloudData.current_rn || 0);
     d.currentAdr = Number(cloudData.current_adr || 0);
     d.currentRev = Number(cloudData.current_rev || 0);
+    d.updatedAt = cloudData.updated_at || null;
   }
 
   render();
